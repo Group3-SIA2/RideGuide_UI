@@ -35,7 +35,6 @@ Before you begin, ensure you have the following installed:
 - Flutter SDK (3.10.8 or higher)
 - Dart SDK (3.10.8 or higher)
 - Android Studio or Visual Studio Code with Flutter extensions
-- Xcode (for iOS development, macOS only)
 - Git
 
 ### Installation
@@ -155,22 +154,6 @@ Build Android App Bundle:
 flutter build appbundle --release
 ```
 
-Build for iOS:
-
-```bash
-flutter build ios --release
-```
-
-## Contributing
-
-We welcome contributions from the community. To contribute:
-
-1. Fork the repository
-2. Create a feature branch (git checkout -b feature/AmazingFeature)
-3. Commit your changes (git commit -m 'Add some AmazingFeature')
-4. Push to the branch (git push origin feature/AmazingFeature)
-5. Open a Pull Request
-
 ### Development Guidelines
 
 - Follow Flutter style guide
@@ -194,7 +177,7 @@ For questions or suggestions, please open an issue in the GitHub repository.
 ## Roadmap
 
 - Implement route planning algorithm
-- Integrate mapping service (Google Maps/OpenStreetMap)
+- Integrate mapping service (Google Maps)
 - Build fare calculation engine
 - Implement real-time GPS tracking
 - Add offline map support
