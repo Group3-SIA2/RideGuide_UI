@@ -83,8 +83,7 @@ flutter run --release
 
 ```
 RideGuide_UI/
-├── android/              # Android-specific configuration
-├── ios/                  # iOS-specific configuration  
+├── android/              # Android-specific configuration 
 ├── lib/                  # Main application code
 │   └── main.dart        # Application entry point
 ├── test/                # Unit and widget tests
@@ -98,8 +97,7 @@ RideGuide_UI/
 
 - Framework: Flutter 3.10.8+
 - Language: Dart 3.10.8+
-- Icons: Cupertino Icons 1.0.8
-- Platform Support: Android, iOS, Web, Windows
+- Platform Support: Android, Web, Windows
 
 ### Dependencies
 
@@ -203,7 +201,3 @@ For questions or suggestions, please open an issue in the GitHub repository.
 - Create user authentication system
 - Develop admin panel for route management
 - Add multi-language support (English, Filipino, Cebuano)
-
----
-
-Made with love for General Santos City commuters
