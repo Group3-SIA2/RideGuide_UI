@@ -17,10 +17,9 @@ RideGuide is a comprehensive transportation companion app specifically designed 
 
 - Interactive Route Planning - Calculate optimal routes across multiple transportation modes
 - Fare Calculator - Accurate fare estimates for different vehicle types
-- Real-time GPS Navigation - Live location tracking and route guidance
+- Real-time Tracking - Live location tracking and route guidance
 - Multi-modal Transport Support
-  - Taxi/Cab routes and fares
-  - Tricycle routes and fares
+  - Cab/Tricycle routes and fares
   - Bus routes and schedules
 - Location Search - Find popular destinations and landmarks
 - Saved Locations - Quick access to frequently visited places
@@ -32,10 +31,14 @@ RideGuide is a comprehensive transportation companion app specifically designed 
 
 Before you begin, ensure you have the following installed:
 
-- Flutter SDK (3.10.8 or higher)
-- Dart SDK (3.10.8 or higher)
+- Laravel Herd (Nginx and PHP)
+- MYSQL Server
+- Running RideGuide_API
+  - (https://github.com/Group3-SIA2/RideGuide_API)
+  - Clone this Repo and make sure it was running (php artisan serve) and configured .env (MYSQL Database)
+- Flutter/Dart SDK (3.10.8 or higher)
 - Android Studio or Visual Studio Code with Flutter extensions
-- Git
+- Git 
 
 ### Installation
 
@@ -164,7 +167,7 @@ flutter build appbundle --release
 
 ## License
 
-This project is currently private. All rights reserved by Group3-SIA2.
+This project is currently in development. All rights reserved by Group3-SIA2.
 
 ## Team
 
@@ -176,11 +179,10 @@ For questions or suggestions, please open an issue in the GitHub repository.
 
 ## Roadmap
 
-- Implement route planning algorithm
+- Implement route planning 
 - Integrate mapping service (Google Maps)
-- Build fare calculation engine
-- Implement real-time GPS tracking
-- Add offline map support
+- Build fare calculation system
+- Implement real-time location tracking
 - Create user authentication system
-- Develop admin panel for route management
+- Develop admin panel for system management
 - Add multi-language support (English, Filipino, Cebuano)
