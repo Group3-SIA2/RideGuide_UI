@@ -5,6 +5,7 @@ import 'package:ride_guide/resources/app_strings.dart';
 import 'package:ride_guide/views/auth/choose_role.dart';
 import 'package:ride_guide/views/auth/login.dart';
 import 'package:ride_guide/views/auth/signup.dart';
+import 'package:ride_guide/views/auth/verify_email.dart';
 import 'package:ride_guide/views/splash_screen.dart';
 import 'package:ride_guide/views/walkthrough.dart';
 
@@ -32,6 +33,8 @@ class MyApp extends StatelessWidget {
         AppRoutes.signup: (context) => const SignupScreen(),
         AppRoutes.chooseRole: (context) => const ChooseRoleScreen(),
         AppRoutes.login: (context) => const LoginScreen(),
+        AppRoutes.verifyEmail: (context) => const VerifyEmailScreen(),
+
       },
     );
 

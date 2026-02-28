@@ -35,4 +35,6 @@ class AppStrings {
   static String commuter = "Commuter";
   static String commuterDesc = "Find and book rides to your\ndestination with ease.";
   static String continueText = "Continue";
+
+  static const String emailPassword = "Email and Password are required!";
 }
