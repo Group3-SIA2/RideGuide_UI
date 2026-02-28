@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:ride_guide/controllers/auth_controller.dart';
 import 'package:ride_guide/resources/app_colors.dart';
 import 'package:ride_guide/resources/app_routes.dart';
 import 'package:ride_guide/resources/app_strings.dart';
@@ -17,12 +18,99 @@ class _SignupScreenState extends State<SignupScreen> {
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _agreedToTerms = false;
+  bool _isLoading = false;
+  String? _emailError;
+  String? _passwordError;
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  // Register Method
+  Future<void> _register() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    // Clear previous errors
+    setState(() {
+      _emailError = null;
+      _passwordError = null;
+    });
+
+    // Local validation
+    bool hasError = false;
+
+    if (email.isEmpty) {
+      setState(() => _emailError = 'Email is required');
+      hasError = true;
+    }
+
+    if (password.isEmpty) {
+      setState(() => _passwordError = 'Password is required');
+      hasError = true;
+    }
+
+    if (hasError) return;
+
+    if (!_agreedToTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please agree to the terms')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final response = await AuthController.register(email, password);
+
+      if (response.success) {
+        // Registration was successful
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(response.message)),
+          );
+          Navigator.pushNamed(context, AppRoutes.verifyEmail);
+        }
+      } else {
+        // Check for server-side field-level validation errors
+        final errors = response.data?['errors'] as Map<String, dynamic>?;
+
+        if (mounted) {
+          setState(() {
+            if (errors != null) {
+              // Extract first error message for each field
+              if (errors.containsKey('email')) {
+                _emailError = (errors['email'] as List).first.toString();
+              }
+              if (errors.containsKey('password')) {
+                _passwordError = (errors['password'] as List).first.toString();
+              }
+            }
+
+            // If no field-level errors, show generic message
+            if (_emailError == null && _passwordError == null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(response.message)),
+              );
+            }
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please Try Again!')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   @override
@@ -56,6 +144,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 controller: _emailController,
                 hintText: AppStrings.email,
                 keyboardType: TextInputType.emailAddress,
+                errorText: _emailError,
               ),
 
               const SizedBox(height: 25),
@@ -65,6 +154,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 controller: _passwordController,
                 hintText: AppStrings.password,
                 obscureText: _obscurePassword,
+                errorText: _passwordError,
                 suffixIcon: IconButton(
                   icon: Icon(
                     _obscurePassword
@@ -137,10 +227,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton(
-                  onPressed: () {
-                    // Navigate to Choose Role after signup
-                    Navigator.pushNamed(context, AppRoutes.chooseRole);
-                  },
+                  onPressed: _isLoading ? null : _register,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryColor,
                     foregroundColor: Colors.white,
@@ -284,26 +371,46 @@ class _SignupScreenState extends State<SignupScreen> {
     TextInputType keyboardType = TextInputType.text,
     bool obscureText = false,
     Widget? suffixIcon,
+    String? errorText,
   }) {
-    return TextField(
-      controller: controller,
-      keyboardType: keyboardType,
-      obscureText: obscureText,
-      style: AppStyles.subText(size: 15, color: Colors.black),
-      decoration: InputDecoration(
-        hintText: hintText,
-        hintStyle: AppStyles.subText(size: 15, color: Colors.grey.shade400),
-        suffixIcon: suffixIcon,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade300, width: 1.5),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextField(
+          controller: controller,
+          keyboardType: keyboardType,
+          obscureText: obscureText,
+          style: AppStyles.subText(size: 15, color: Colors.black),
+          decoration: InputDecoration(
+            hintText: hintText,
+            hintStyle: AppStyles.subText(size: 15, color: Colors.grey.shade400),
+            suffixIcon: suffixIcon,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: errorText != null ? Colors.red : Colors.grey.shade300,
+                width: 1.5,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: errorText != null ? Colors.red : AppColors.primaryColor,
+                width: 1.5,
+              ),
+            ),
+          ),
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.primaryColor, width: 1.5),
-        ),
-      ),
+        if (errorText != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 6, left: 12),
+            child: Text(
+              errorText,
+              style: AppStyles.subText(size: 12, color: Colors.red),
+            ),
+          ),
+      ],
     );
   }
 }
