@@ -37,4 +37,13 @@ class AppStrings {
   static String continueText = "Continue";
 
   static const String emailPassword = "Email and Password are required!";
+
+  // Verify Email Screen
+  static String verifyEmailTitle = "Verification";
+  static String verifyEmailHeading = "Enter your\nVerification Code";
+  static String verifyEmailDesc = "We send verification code to your email ";
+  static String verifyEmailDescSuffix = ". You can check your inbox.";
+  static String verifyButton = "Verify";
+  static String resendCode = "Send again";
+  static String didntReceiveCode = "I didn't received the code? ";
 }
