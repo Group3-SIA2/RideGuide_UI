@@ -73,7 +73,10 @@ class _SignupScreenState extends State<SignupScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(response.message)),
           );
-          Navigator.pushNamed(context, AppRoutes.verifyEmail);
+          Navigator.pushNamed(context, AppRoutes.verifyEmail, arguments: {
+            'email': email,
+            'type': 'email_verification',
+          });
         }
       } else {
         // Check for server-side field-level validation errors
