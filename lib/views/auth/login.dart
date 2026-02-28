@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:ride_guide/controllers/auth_controller.dart';
 import 'package:ride_guide/resources/app_colors.dart';
 import 'package:ride_guide/resources/app_routes.dart';
 import 'package:ride_guide/resources/app_strings.dart';
@@ -16,12 +17,92 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _isLoading = false;
+  String? _emailError;
+  String? _passwordError;
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  // Login Method
+  Future<void> _login() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    // Clear previous errors
+    setState(() {
+      _emailError = null;
+      _passwordError = null;
+    });
+
+    // Local validation
+    bool hasError = false;
+
+    if (email.isEmpty) {
+      setState(() => _emailError = 'Email is required');
+      hasError = true;
+    }
+
+    if (password.isEmpty) {
+      setState(() => _passwordError = 'Password is required');
+      hasError = true;
+    }
+
+    if (hasError) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final response = await AuthController.login(email, password);
+
+      if (response.success) {
+        // Login successful — navigate to verify email with login_2fa type
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(response.message)),
+          );
+          Navigator.pushNamed(context, AppRoutes.verifyEmail, arguments: {
+            'email': email,
+            'type': 'login_2fa',
+          });
+        }
+      } else {
+        // Check for server-side field-level validation errors
+        final errors = response.data?['errors'] as Map<String, dynamic>?;
+
+        if (mounted) {
+          setState(() {
+            if (errors != null) {
+              if (errors.containsKey('email')) {
+                _emailError = (errors['email'] as List).first.toString();
+              }
+              if (errors.containsKey('password')) {
+                _passwordError = (errors['password'] as List).first.toString();
+              }
+            }
+
+            // If no field-level errors, show as email error (e.g. "account not found", "invalid credentials")
+            if (_emailError == null && _passwordError == null) {
+              _emailError = response.message;
+            }
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Something went wrong. Please try again.')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   @override
@@ -55,6 +136,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 controller: _emailController,
                 hintText: AppStrings.email,
                 keyboardType: TextInputType.emailAddress,
+                errorText: _emailError,
               ),
 
               const SizedBox(height: 25),
@@ -64,6 +146,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 controller: _passwordController,
                 hintText: AppStrings.password,
                 obscureText: _obscurePassword,
+                errorText: _passwordError,
                 suffixIcon: IconButton(
                   icon: Icon(
                     _obscurePassword
@@ -87,9 +170,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton(
-                  onPressed: () {
-                    // TODO: Handle login
-                  },
+                  onPressed: _isLoading ? null : _login,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryColor,
                     foregroundColor: Colors.white,
@@ -98,11 +179,20 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     elevation: 0,
                   ),
-                  child: Text(
-                    AppStrings.loginTitle,
-                    style: AppStyles.subText(size: 16, color: Colors.white)
-                        .copyWith(fontWeight: FontWeight.w600),
-                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2.5,
+                          ),
+                        )
+                      : Text(
+                          AppStrings.loginTitle,
+                          style: AppStyles.subText(size: 16, color: Colors.white)
+                              .copyWith(fontWeight: FontWeight.w600),
+                        ),
                 ),
               ),
 
@@ -167,27 +257,47 @@ class _LoginScreenState extends State<LoginScreen> {
     TextInputType keyboardType = TextInputType.text,
     bool obscureText = false,
     Widget? suffixIcon,
+    String? errorText,
   }) {
-    return TextField(
-      controller: controller,
-      keyboardType: keyboardType,
-      obscureText: obscureText,
-      style: AppStyles.subText(size: 15, color: Colors.black),
-      decoration: InputDecoration(
-        hintText: hintText,
-        hintStyle: AppStyles.subText(size: 15, color: Colors.grey.shade400),
-        suffixIcon: suffixIcon,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade300, width: 1.5),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextField(
+          controller: controller,
+          keyboardType: keyboardType,
+          obscureText: obscureText,
+          style: AppStyles.subText(size: 15, color: Colors.black),
+          decoration: InputDecoration(
+            hintText: hintText,
+            hintStyle: AppStyles.subText(size: 15, color: Colors.grey.shade400),
+            suffixIcon: suffixIcon,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: errorText != null ? Colors.red : Colors.grey.shade300,
+                width: 1.5,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: errorText != null ? Colors.red : AppColors.primaryColor,
+                width: 1.5,
+              ),
+            ),
+          ),
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.primaryColor, width: 1.5),
-        ),
-      ),
+        if (errorText != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 6, left: 12),
+            child: Text(
+              errorText,
+              style: AppStyles.subText(size: 12, color: Colors.red),
+            ),
+          ),
+      ],
     );
   }
 }
